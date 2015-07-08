@@ -1,22 +1,54 @@
-#IPBM Server
+# chat_client.py
 
-#IPBM
-#import BodyOfMass
-
-#Pygame
-import pygame
-
-#Network
+import sys
 import socket
 import select
 
-#Network stuff
-host = "localhost"
-port = 9999
+def chat_client():
+    if(len(sys.argv) < 3) :
+        print('Usage : python chat_client.py hostname port')
+        sys.exit()
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((host, port))
-s.sendall(b'Hello, world')
-data = s.recv(1024)
-s.close()
-print('Received', repr(data))
+    host = sys.argv[1]
+    port = int(sys.argv[2])
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(2)
+
+    # connect to remote host
+    try :
+        s.connect((host, port))
+    except :
+        print('Unable to connect')
+        sys.exit()
+
+    print('Connected to remote host. You can start sending messages')
+    sys.stdout.write('[Me] '); sys.stdout.flush()
+
+    while 1:
+        socket_list = [s]
+
+        # Get the list sockets which are readable
+        ready_to_read,ready_to_write,in_error = select.select(socket_list , [], [])
+
+        for sock in ready_to_read:
+            if sock == s:
+                # incoming message from remote server, s
+                data = sock.recv(4096)
+                if not data :
+                    print('\nDisconnected from chat server')
+                    sys.exit()
+                else :
+                    #print data
+                    sys.stdout.write(data)
+                    sys.stdout.write('[Me] '); sys.stdout.flush()
+
+
+        #Wait for user message
+        msg = sys.stdin.readline()
+        s.send(msg)
+        sys.stdout.write('[Me] '); sys.stdout.flush()
+
+if __name__ == "__main__":
+
+    sys.exit(chat_client())
