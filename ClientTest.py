@@ -49,7 +49,7 @@ def chat_client():
             if sock == s:
                 # incoming message from remote server, s
                 incomming_byte_message = sock.recv(4096)
-                print("Recieved: " + incomming_byte_message.decode('utf-8'))
+                print("Received: " + incomming_byte_message.decode('utf-8'))
 
 
         #Send messages every 2 seconds
@@ -58,7 +58,7 @@ def chat_client():
                 message_string = "Client " + str(sys.argv[3]) + " message number: " + str(counter)
                 byte_message = message_string.encode('utf-8')
                 sock.send(byte_message)
-                #print("Recieved: "
+                #print("Received: "
                 print("    Sent: " + message_string)
                 last_send = current_time
                 counter += 1

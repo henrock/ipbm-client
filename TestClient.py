@@ -23,9 +23,10 @@ message = "Test connection send from client!"
 #s.send(str(message))
 s.send(bytes(message, 'UTF-8'))
 
-#Recieve message
+#Receive message
 incomming_byte_message = s.recv(4096)
 print("Recieved: " + incomming_byte_message.decode('utf-8'))
 
 #Close sockets
+s.shutdown(socket.SHUT_RDWR)
 s.close()

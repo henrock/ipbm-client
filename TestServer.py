@@ -23,13 +23,16 @@ except :
 #Accept connection
 (clientsocket, address) = s.accept()
 
-#Recieve message
+#Receive message
 incomming_byte_message = clientsocket.recv(4096)
-print("Recieved: " + incomming_byte_message.decode('utf-8'))
+
+print("Received: " + incomming_byte_message.decode('utf-8'))
 
 #Send message
 message = "Hello there, I got your message! Kan du höra mig?"
 clientsocket.send(bytes(message, "UTF-8"))
 
+#clientsocket.shutdown(socket.SHUT_RDWR)
 clientsocket.close()
+#s.shutdown(socket.SHUT_RDWR)
 s.close()
