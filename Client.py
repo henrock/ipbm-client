@@ -1,9 +1,9 @@
-#IPBM Server
+#IPBM Client
 
 #IPBM
-import PlaySpace
-import MissileLauncher
-import BodyOfMass
+#import PlaySpace
+#import MissileLauncher
+#import BodyOfMass
 
 #Network
 import socket
@@ -14,70 +14,74 @@ import time
 import os
 import sys
 import math
+import pygame
 
+#Define receive buffer length
+buffer_length = 4096
+
+def check_for_incoming_data(server_socket):
+    #Check that the server_socket has a valid file descriptor
+    if server_socket.fileno() == -1:
+        #Broken connection
+        return []
+
+    #Use select to check if there is anything to read, using timeout value 0
+    ready_to_read, ready_to_write, in_errror = select.select([server_socket], [], [], 0)
+
+    #Check if ready_to_read contains anything
+    if len(ready_to_read) > 0:
+        #Extract message
+        incoming_byte_message = ready_to_read[0].recv(buffer_length)   #Buffer_length is a global variable
+        print("Received: " + incoming_byte_message.decode("UTF-8"))
+
+        #Decode message
+        message = incoming_byte_message.decode("UTF-8")
+
+    return []
 
 if __name__ == "__main__":
-    #Define a list of clients
-    list_of_connections = []
+    #Check command line arguments
+    if(len(sys.argv) < 3) :
+        print("Usage : Python Client.py ServerNameOrIp Port")
+        sys.exit()
+    server_name = sys.argv[1]
+    server_port = int(sys.argv[2])
 
-    #Connection information
-    host = "localhost"
-    port = 9999
-    recieve_buffer = 4096
+    #Connect to server
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try :
+        server.connect((server_name, server_port))
+    except :
+        print("Unable to connect to server: " + server_name)
+        sys.exit()
+    print("Connected to remote host: " + server_name)
 
-    #Set up server socket
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind((host, port))
-    server_socket.listen(10)
+    #Create window and display it
+    (win_x, win_y) = (640, 480)
+    screen = pygame.display.set_mode((win_x,win_y))
+    pygame.display.set_caption("A primitive Client")
+    pygame.display.flip()
 
-    #Add server socket to list of connections
-    list_of_connections.append(server_socket)
+    #Create client loop control variable
+    run_client_loop = True
 
-    #Main loop
-    run_main_loop = True
-    while run_main_loop:
-        #List of data to be transmitted
-        data_to_be_sent = []
+    while run_client_loop:
+        #Check for incoming data
+        check_for_incoming_data(server)
 
-        #Stuff
+        #Clear screen
 
-        #Extra stuff
+        #Draw planets
 
-        #Check connections
-        read_sockets, write_sockets, error_sockets = select.select(list_of_connections, [], [])
+        #Handle events
 
-        for sock in read_sockets:
-            #Check for new connections
-            if sock == server_socket:
-                # Handle the case in which there is a new connection recieved through server_socket
-                sockfd, addr = server_socket.accept()
-                list_of_connections.append(sockfd)
-                print("Client (%s, %s) connected" % addr)
+        run_client_loop = False
 
-            #Check for incoming messages
-            else:
-                # Data recieved from client, process it
-                try:
-                    #In Windows, sometimes when a TCP program closes abruptly,
-                    # a "Connection reset by peer" exception will be thrown
-                    data = sock.recv(recieve_buffer)
+    #Handle end of program
+    server.close()
+    pygame.quit()
 
-                    #Add recieved data to a send string
-                    if data:
-                        print("Client wrote: " + data)
-                        data_to_be_sent.append(data)
-                        sock.send('OK ... ' + data)
 
-                # client disconnected, so remove from socket list
-                except:
-                    #broadcast_data(sock, "Client (%s, %s) is offline" % addr)
-                    print("Client (%s, %s) is offline" % addr)
-                    sock.close()
-                    list_of_connections.remove(sock)
-                    continue
-
-    server_socket.close()
 
 
 
