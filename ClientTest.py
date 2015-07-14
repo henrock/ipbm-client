@@ -67,6 +67,7 @@ def chat_client():
         #print("Waiting")
         #time.wait(100)
         #print("Done waiting")
+    s.shutdown(socket.SHUT_RDWR)
     s.close()
 
 
