@@ -19,25 +19,27 @@ import pygame
 #Define receive buffer length
 buffer_length = 4096
 
-def check_for_incoming_data(server_socket):
+def check_for_incoming_data(server_socket, planet_list):
     #Check that the server_socket has a valid file descriptor
-    if server_socket.fileno() == -1:
-        #Broken connection
-        return []
+    if server_socket.fileno() != -1:
+        #Use select to check if there is anything to read, using timeout value 0
+        ready_to_read, ready_to_write, in_errror = select.select([server_socket], [], [], 0)
 
-    #Use select to check if there is anything to read, using timeout value 0
-    ready_to_read, ready_to_write, in_errror = select.select([server_socket], [], [], 0)
+        #Check if ready_to_read contains anything
+        if len(ready_to_read) > 0:
+            #Extract message
+            incoming_byte_message = ready_to_read[0].recv(buffer_length)   #Buffer_length is a global variable
 
-    #Check if ready_to_read contains anything
-    if len(ready_to_read) > 0:
-        #Extract message
-        incoming_byte_message = ready_to_read[0].recv(buffer_length)   #Buffer_length is a global variable
-        print("Received: " + incoming_byte_message.decode("UTF-8"))
+            if incoming_byte_message:
+                #Decode message
+                message = incoming_byte_message.decode("UTF-8")
+                print("Received: " + message)
+                return message
 
-        #Decode message
-        message = incoming_byte_message.decode("UTF-8")
-
-    return []
+            else:
+                print("Connection dropped.")
+    #Nothing received, return the same old list
+    return planet_list
 
 if __name__ == "__main__":
     #Check command line arguments
@@ -65,17 +67,32 @@ if __name__ == "__main__":
     #Create client loop control variable
     run_client_loop = True
 
+    #Create empty list of planets
+    list_of_planets = []
+
     while run_client_loop:
         #Check for incoming data
-        check_for_incoming_data(server)
+        list_of_planets = check_for_incoming_data(server, list_of_planets)
 
         #Clear screen
+        screen.fill((0,0,0))
 
         #Draw planets
+        if len(list_of_planets) > 0:
+            for planet in list_of_planets:
+                #bom.position = b[0]
+                #bom.radius   = b[1]
+                print(planet[0]["x"])
+                print(planet[0]["y"])
+                print(planet[1])
+                pygame.draw.circle(screen,(255,0,255),(int(planet[0]["x"]), int(planet[0]['y'])), int(planet[1]), 0)
 
         #Handle events
 
-        run_client_loop = False
+        #Update screen
+        pygame.display.flip()
+
+        #run_client_loop = False
 
     #Handle end of program
     server.close()
